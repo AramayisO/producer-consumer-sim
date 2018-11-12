@@ -26,8 +26,8 @@ private:
 public:
     BBQ();
     ~BBQ() {};
-    void insert(int item);
-    int remove();
+    int insert(int item);
+    int remove(int &item);
 };
 
 #endif
