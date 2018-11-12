@@ -19,6 +19,10 @@ private:
     int m_head;
     int m_tail;
 
+    // Helper functions
+    inline bool hasSpace() { return (m_tail - m_head) < MAX; }
+    inline bool hasItems() { return m_head < m_tail; }
+    
 public:
     BBQ();
     ~BBQ() {};
