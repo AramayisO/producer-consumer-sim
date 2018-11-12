@@ -4,7 +4,7 @@
 #include <mutex>
 #include <condition_variable>
 
-const int MAX = 10;
+static const int MAX = 10;
 
 class BBQ
 {
@@ -19,9 +19,9 @@ private:
     int m_head;
     int m_tail;
 
-    // Helper functions
-    inline bool hasSpace() { return (m_tail - m_head) < MAX; }
-    inline bool hasItems() { return m_head < m_tail; }
+    // // Helper functions
+    inline bool canInsert() { return (m_tail - m_head) < MAX; }
+    inline bool canRemove() { return m_head < m_tail; }
     
 public:
     BBQ();
