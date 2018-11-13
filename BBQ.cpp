@@ -1,29 +1,44 @@
 #include "BBQ.h"
 #include <functional>
 
-/**
- * Construct a new thread-safe blocking bounded queue.
- */
-BBQ::BBQ(): m_head(0), m_tail(0) {}
+// Default constructor to create a thread safe blocking bounded queue.
+BBQ::BBQ(): head{0}, tail{0} {}
 
 int BBQ::insert(int item)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_itemRemoved.wait(lock, std::bind(&BBQ::canInsert, this));
-    m_items[m_tail % MAX] = item;
-    int position = m_tail % MAX;
-    m_tail++;
-    m_itemAdded.notify_one();
+    // Acquire lock and check if there is space to add a new item.
+    // Release lock and wait if there is no space.
+    std::unique_lock<std::mutex> lock(buffer_mutex);
+    item_removed.wait(lock, std::bind(&BBQ::canInsert, this));
+
+    // Add item to buffer and return the position where item was added.
+    buffer[tail % MAX] = item;
+    int position = tail % MAX;
+    tail++;
+
+    // Signal that an item has been to allow a waiting consumer thread
+    // to continue.
+    item_added.notify_one();
+
     return position;
 }
 
 int BBQ::remove(int &item)
 {
-    std::unique_lock<std::mutex> lock(m_mutex);
-    m_itemAdded.wait(lock, std::bind(&BBQ::canRemove, this));
-    item = m_items[m_head % MAX];
-    int position = m_head % MAX;
-    m_head++;
-    m_itemRemoved.notify_one();
+    // Acquire lock and check if there is at least one item that can be removed.
+    // Release lock and wait if there is are no items in the buffersa.
+    std::unique_lock<std::mutex> lock(buffer_mutex);
+    item_added.wait(lock, std::bind(&BBQ::canRemove, this));
+
+    // Remove item from buffer. Write value of removed item to output parameter
+    // and return position where item was removed.
+    item = buffer[head % MAX];
+    int position = head % MAX;
+    head++;
+
+    // Signal that an item has been removed to allow a waiting producer thread
+    // to continue.
+    item_removed.notify_one();
+
     return position;
 }

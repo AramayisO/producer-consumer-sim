@@ -4,24 +4,24 @@
 #include <mutex>
 #include <condition_variable>
 
-static const int MAX = 20;
+constexpr int MAX = 20;
 
 class BBQ
 {
 private:
     // Synchronization variables
-    std::mutex m_mutex;
-    std::condition_variable m_itemAdded;
-    std::condition_variable m_itemRemoved;
+    std::mutex buffer_mutex;
+    std::condition_variable item_added;
+    std::condition_variable item_removed;
 
     // State variables
-    int m_items[MAX];
-    int m_head;
-    int m_tail;
+    int buffer[MAX];
+    int head;
+    int tail;
 
-    // // Helper functions
-    inline bool canInsert() { return (m_tail - m_head) < MAX; }
-    inline bool canRemove() { return m_head < m_tail; }
+    // Helper functions
+    inline bool canInsert() { return (tail - head) < MAX; }
+    inline bool canRemove() { return head < tail; }
     
 public:
     /**
@@ -47,7 +47,7 @@ public:
      * Removes an item from the buffer if buffer is not empty. Otherwise,
      * waits until there is an available item in the buffer.
      * 
-     * @param item - Output parameter to which removed item is copied.
+     * @param item - Output parameter in which removed item is copied.
      * @return Returns position of removed item.
      */
     int remove(int &item);
