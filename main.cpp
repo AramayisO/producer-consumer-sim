@@ -26,7 +26,7 @@ void producerTask(const BBQ &_bbq, int max_sleep_time_ms)
     while (true)
     {
         int item_id = bbq.insert(std::rand());
-        std::printf("Item ID %d produced by thread number 0x%x\n", item_id, std::this_thread::get_id());
+        std::printf("Item ID %2d produced by thread number 0x%x\n", item_id, std::this_thread::get_id());
         std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time_ms));
     }
 }
@@ -49,7 +49,7 @@ void consumerTask(const BBQ &arg, int max_sleep_time_ms)
     {
         int item;
         int item_id = bbq.remove(item);
-        std::printf("Item ID %d consumed by thread number 0x%x\n", item_id, std::this_thread::get_id());
+        std::printf("Item ID %2d consumed by thread number 0x%x\n", item_id, std::this_thread::get_id());
         std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time_ms));
     }
 }
