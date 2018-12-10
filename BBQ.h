@@ -16,8 +16,8 @@ private:
 
     // State variables
     int buffer[MAX];
-    int head;
-    int tail;
+    std::size_t head;
+    std::size_t tail;
 
     // Helper functions
     inline bool canInsert() { return (tail - head) < MAX; }
@@ -38,19 +38,19 @@ public:
      * Inserts a new item into the buffer if buffer is not full. Otherwise,
      * waits until space becomes available.
      * 
-     * @param item - Item to be inserted.
-     * @return Returns the position at which the item was inserted.
+     * @param item the item to be inserted.
+     * @return id of inserted item, which is the total number of items inserted.
      */
-    int insert(int item);
+    std::size_t insert(int item);
 
     /**
      * Removes an item from the buffer if buffer is not empty. Otherwise,
      * waits until there is an available item in the buffer.
      * 
-     * @param item - Output parameter in which removed item is copied.
-     * @return Returns position of removed item.
+     * @param item upon sucess contains copy of removed item.
+     * @return id of removed item, which is the total number of items removed.
      */
-    int remove(int &item);
+    std::size_t remove(int &item);
 };
 
 #endif
