@@ -24,8 +24,8 @@ int main(int argc, char **argv)
     std::srand(std::time(nullptr));
 
     // Parse delay times from command line arguements.
-    int producers_max_sleep_time_ms = std::atoi(*(argv + 1));
-    int consumers_max_sleep_time_ms = std::atoi(*(argv + 2));
+    int max_producer_sleep_time_ms = std::atoi(*(argv + 1));
+    int max_consumer_sleep_time_ms = std::atoi(*(argv + 2));
 
 
     std::srand(std::time(0));
@@ -41,7 +41,7 @@ int main(int argc, char **argv)
 
     for (int i = 0; i < NUM_PRODUCERS; ++i)
     {
-        Producer *producer = new Producer(bbq, i + 1, 5000);
+        Producer *producer = new Producer(bbq, i + 1, max_producer_sleep_time_ms);
         producers.push_back(producer);
         bbq->registerObserver(producer);
     }
@@ -56,7 +56,7 @@ int main(int argc, char **argv)
 
     for (int i = NUM_PRODUCERS; i < NUM_PRODUCERS + NUM_CONSUMERS; ++i)
     {
-        Consumer *consumer = new Consumer(bbq, i + 1, 5000);
+        Consumer *consumer = new Consumer(bbq, i + 1, max_consumer_sleep_time_ms);
         consumers.push_back(consumer);
         consumerThreads.push_back(std::thread(&Consumer::run, consumer));
         std::printf("Created consumer thread number %d\n", i + 1);
