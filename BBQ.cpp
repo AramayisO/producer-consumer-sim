@@ -4,7 +4,7 @@
 #include <functional>
 
 BBQ::BBQ() : head{0}, tail{0} {
-    buffer = new int[MAX_BUFFER_SIZE];
+    buffer = new int[BBQ_MAX_BUFFER_SIZE];
 }
 
 BBQ::~BBQ() {
@@ -19,13 +19,24 @@ void BBQ::insert(int thread_id, int item)
     // insert item and return.
     std::unique_lock<std::mutex> lock(buffer_mutex);
     item_removed.wait(lock, std::bind(&BBQ::canInsert, this, thread_id));
-    buffer[tail % MAX_BUFFER_SIZE] = item;
+    buffer[tail % BBQ_MAX_BUFFER_SIZE] = item;
     tail++;
 
     tsprintf("Item ID %d produced by thread number %d\n", tail - 1, thread_id);
 
     // Notify observers if threshold exceeded or cleared.
-    notifyObservers();
+    if ((tail - head) >= BBQ_THREE_QUARTERS_BUFFER_SIZE)
+    {
+        notifyObservers(BBQObserverAction::DecreaseProductionRate);
+    }
+    else if ((tail - head) <= BBQ_ONE_QUARTER_BUFFER_SIZE)
+    {
+        notifyObservers(BBQObserverAction::IncreaseProductionRate);
+    }
+    else
+    {
+        notifyObservers(BBQObserverAction::ResetProductionRate);
+    }
     
     // Signal that an item has been insert to allow a waiting
     // consumer thread to continue.
@@ -39,13 +50,24 @@ void BBQ::remove(int thread_id, int &item)
     // remove item and return.
     std::unique_lock<std::mutex> lock(buffer_mutex);
     item_added.wait(lock, std::bind(&BBQ::canRemove, this, thread_id));
-    item = buffer[head % MAX_BUFFER_SIZE];
+    item = buffer[head % BBQ_MAX_BUFFER_SIZE];
     head++;
 
     tsprintf("Item ID %d consumed by thread number %d\n", head - 1, thread_id);
 
-    // Notify observers.
-    notifyObservers();
+    // Notify observers if threshold exceeded or cleared.
+    if ((tail - head) >= BBQ_THREE_QUARTERS_BUFFER_SIZE)
+    {
+        notifyObservers(BBQObserverAction::DecreaseProductionRate);
+    }
+    else if ((tail - head) <= BBQ_ONE_QUARTER_BUFFER_SIZE)
+    {
+        notifyObservers(BBQObserverAction::IncreaseProductionRate);
+    }
+    else
+    {
+        notifyObservers(BBQObserverAction::ResetProductionRate);
+    }
 
     // Signal that an item has been removed to allow a waiting
     // producer thread to continue.
@@ -60,17 +82,17 @@ void BBQ::registerObserver(BBQObserver *observer)
     }
 }
 
-void BBQ::notifyObservers()
+void BBQ::notifyObservers(BBQObserverAction action)
 {
     for (BBQObserver *observer : observers)
     {
-        observer->update();
+        observer->update(action);
     }
 }
 
 bool BBQ::canInsert(int thread_id)
 {
-    if ((tail - head) < MAX_BUFFER_SIZE)
+    if ((tail - head) < BBQ_MAX_BUFFER_SIZE)
     {
         return true;
     }

@@ -6,7 +6,9 @@
 #include <condition_variable>
 #include <vector>
 
-#define MAX_BUFFER_SIZE 10
+#define BBQ_MAX_BUFFER_SIZE            10
+#define BBQ_THREE_QUARTERS_BUFFER_SIZE ((BBQ_MAX_BUFFER_SIZE * 3) / 4)
+#define BBQ_ONE_QUARTER_BUFFER_SIZE    (BBQ_MAX_BUFFER_SIZE / 4)
 
 class BBQ
 {
@@ -57,7 +59,7 @@ public:
     /**
      * 
      */
-    void notifyObservers();
+    void notifyObservers(BBQObserverAction action);
 
 };
 
