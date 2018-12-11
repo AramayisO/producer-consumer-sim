@@ -22,7 +22,7 @@ void Producer::run()
     {
         if (bbq != nullptr)
         {
-            bbq->insert(thread_id, std::rand() % BBQ_MAX_BUFFER_SIZE);
+            bbq->insert(thread_id, std::rand() % 100);
             sleep_for(milliseconds(std::rand() % max_sleep_time));
         }
     }

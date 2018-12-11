@@ -3,6 +3,10 @@
 #include "tsprintf.h"
 #include <functional>
 
+#define BBQ_MAX_BUFFER_SIZE            25
+#define BBQ_THREE_QUARTERS_BUFFER_SIZE ((BBQ_MAX_BUFFER_SIZE * 3) / 4)
+#define BBQ_ONE_QUARTER_BUFFER_SIZE    (BBQ_MAX_BUFFER_SIZE / 4)
+
 BBQ::BBQ() : head{0}, tail{0} {
     buffer = new int[BBQ_MAX_BUFFER_SIZE];
 }
@@ -29,11 +33,7 @@ void BBQ::insert(int thread_id, int item)
     {
         notifyObservers(BBQObserverAction::DecreaseProductionRate);
     }
-    else if ((tail - head) <= BBQ_ONE_QUARTER_BUFFER_SIZE)
-    {
-        notifyObservers(BBQObserverAction::IncreaseProductionRate);
-    }
-    else
+    else if ((tail - head) > BBQ_ONE_QUARTER_BUFFER_SIZE)
     {
         notifyObservers(BBQObserverAction::ResetProductionRate);
     }
@@ -56,15 +56,11 @@ void BBQ::remove(int thread_id, int &item)
     tsprintf("Item ID %d consumed by thread number %d\n", head - 1, thread_id);
 
     // Notify observers if threshold exceeded or cleared.
-    if ((tail - head) >= BBQ_THREE_QUARTERS_BUFFER_SIZE)
-    {
-        notifyObservers(BBQObserverAction::DecreaseProductionRate);
-    }
-    else if ((tail - head) <= BBQ_ONE_QUARTER_BUFFER_SIZE)
+    if ((tail - head) <= BBQ_ONE_QUARTER_BUFFER_SIZE)
     {
         notifyObservers(BBQObserverAction::IncreaseProductionRate);
     }
-    else
+    else if ((tail - head) < BBQ_THREE_QUARTERS_BUFFER_SIZE)
     {
         notifyObservers(BBQObserverAction::ResetProductionRate);
     }
