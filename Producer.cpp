@@ -1,4 +1,10 @@
 #include "Producer.h"
+#include "BBQObserver.h"
+#include "tsprintf.h"
+#include <thread>
+#include <chrono>
+#include <cstdio>
+#include <cstdlib>
 
 Producer::Producer(BBQ *_bbq, int id, int tp): 
     bbq{_bbq}, 

@@ -3,11 +3,6 @@
 
 #include "BBQ.h"
 #include "BBQObserver.h"
-#include "tsprintf.h"
-#include <thread>
-#include <chrono>
-#include <cstdio>
-#include <cstdlib>
 
 class Producer : public BBQObserver
 {
