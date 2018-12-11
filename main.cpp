@@ -1,69 +1,14 @@
+#include "BBQ.h"
+#include "Producer.h"
+#include "Consumer.h"
 #include <thread>
 #include <vector>
-#include <chrono>
 #include <cstdlib>
-#include <cstdio>
-#include <ctime>    
-#include "BBQ.h"
+#include <ctime>
 
-constexpr int NUM_PRODUCERS{10};
-constexpr int NUM_CONSUMERS{10};
+#define NUM_PRODUCERS 10
+#define NUM_CONSUMERS 10
 
-/**
- * Infinitely looping task that inserts a random value at each iteration into a
- * shared bounded buffer queue. The thread will sleep for some random time in the
- * range (0, max_sleep_time_ms) milliseconds between consecutive insert operations.
- * 
- * @param _bbq Bounded buffer queue in which values will be inserted.
- * 
- * @param max_sleep_time_ms Upper bound for the amound of time the thread will
- *                          between consecutive insert operations in milliseconds.
- */
-void producerTask(const BBQ &_bbq, int thread_id, int max_sleep_time_ms)
-{
-    BBQ &bbq = const_cast<BBQ&>(_bbq);
-    
-    while (true)
-    {
-        int item_id = bbq.insert(std::rand());
-        std::printf("Item %zu produced by producer thread %d\n", item_id, thread_id);
-        std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time_ms));
-    }
-}
-
-/**
- * Infinitely looping task that removes a value at each iteration from a shared
- * bounded buffer queue. The thread will sleep for some random time in the range
- * (0, max_sleep_time_ms) milliseconds between consecutive remove operations
- * 
- * @param _bbq Bounded buffer queue from which values will be removed.
- * 
- * @param max_sleep_time_ms Upper bound for the amound of time the thread will
- *                          between consecutive remove operations in milliseconds.
- */
-void consumerTask(const BBQ &arg, int thread_id, int max_sleep_time_ms)
-{
-    BBQ &bbq = const_cast<BBQ&>(arg);
-    
-    while (true)
-    {
-        int item;
-        int item_id = bbq.remove(item);
-        std::printf("Item %zu consumed by consumer thread %d\n", item_id, thread_id);
-        std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time_ms));
-    }
-}
-
-// ============================================================================
-// = Main: Entry point into the program.
-// =       Creates NUM_PRODUCER producing threads and NUM_CONSUMER consuming
-// =       that share an instance of a BBQ. Each thread runs indefinitely with 
-// =       a random sleep time between consecutive insert and remove operations
-// =       within the range (0, producers_max_sleep_time_ms) and 
-// =       (0, consumer_max_sleep_time_ms) where producers_max_sleep_time_ms 
-// =       and consumer_max_sleep_time_ms are in milliseconds and passed in as
-// =       command-line arguments.
-// ============================================================================
 int main(int argc, char **argv)
 {
     // Check if program was called with correct number of command-line arguemnts.
@@ -82,42 +27,51 @@ int main(int argc, char **argv)
     int producers_max_sleep_time_ms = std::atoi(*(argv + 1));
     int consumers_max_sleep_time_ms = std::atoi(*(argv + 2));
 
+
+    std::srand(std::time(0));
+
     // Create shared blocking bounded queue.
-    BBQ bbq;
+    BBQ *bbq = new BBQ();
 
     // Initialize producer and consumer threads. These threads will run forever.
-    std::vector<std::thread> producers;
-    std::vector<std::thread> consumers;
+    std::vector<Producer*> producers;
+    std::vector<Consumer*> consumers;
+    std::vector<std::thread> producerThreads;
+    std::vector<std::thread> consumerThreads;
 
-    // Create producing threads.
-    for (int thread_id = 1; thread_id <= NUM_PRODUCERS; ++thread_id) {
-        producers.push_back(std::thread(producerTask, std::ref(bbq), thread_id, producers_max_sleep_time_ms));
-        std::printf("Created producer thread %d\n", thread_id);
-
+    for (int i = 0; i < NUM_PRODUCERS; ++i)
+    {
+        Producer *producer = new Producer(bbq, i + 1, 5000);
+        producers.push_back(producer);
+        bbq->registerObserver(producer);
     }
 
-    // Create consuming threads.
-    for (int thread_id = 1; thread_id < NUM_CONSUMERS; ++thread_id) {
-        consumers.push_back(std::thread(consumerTask, std::ref(bbq), thread_id, consumers_max_sleep_time_ms));
-        std::printf("Created consumer thread %d\n", thread_id);
+    for (int i = 0; i < NUM_PRODUCERS; ++i)
+    { 
+        // Create producer threads in separate loop so that all producers are 
+        // registered as observers on the BBQ prior to creating threads.
+        producerThreads.push_back(std::thread(&Producer::run, producers[i]));
+        std::printf("Created producer thread number %d\n", i + 1);
     }
 
+    for (int i = NUM_PRODUCERS; i < NUM_PRODUCERS + NUM_CONSUMERS; ++i)
+    {
+        Consumer *consumer = new Consumer(bbq, i + 1, 5000);
+        consumers.push_back(consumer);
+        consumerThreads.push_back(std::thread(&Consumer::run, consumer));
+        std::printf("Created consumer thread number %d\n", i + 1);
+    }
+        
     // Even though the threads will run forever, we need to call join on the 
     // threads so that the main thread will wait and not exit till the
     // producers and consumers are finished. In effect, this ensures the
     // program runs indefinitely, until the user interrupts the program using
     // CTRL + C or kills the program.
-    for (auto &producer : producers) {
-        if (producer.joinable()) {
-            producer.join();
-        }
-    }
+    for (auto &producerThread : producerThreads)
+        producerThread.join();
 
-    for (auto &consumer : consumers) {
-        if (consumer.joinable()) {
-            consumer.join();
-        }
-    }
+    for (auto &consumerThread : consumerThreads)
+        consumerThread.join();
 
-    return EXIT_SUCCESS;
+    return 0;
 }

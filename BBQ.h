@@ -1,56 +1,64 @@
 #ifndef BBQ_H
 #define BBQ_H
 
+#include "BBQObserver.h"
 #include <mutex>
 #include <condition_variable>
+#include <vector>
 
-constexpr int MAX = 20;
+#define MAX_BUFFER_SIZE 10
 
 class BBQ
 {
 private:
-    // Synchronization variables
+    // Synchronization variables.
     std::mutex buffer_mutex;
     std::condition_variable item_added;
     std::condition_variable item_removed;
 
-    // State variables
-    int buffer[MAX];
-    std::size_t head;
-    std::size_t tail;
+    // State variables.
+    int *buffer;
+    int head;
+    int tail;
 
-    // Helper functions
-    inline bool canInsert() { return (tail - head) < MAX; }
+    // Observer pattern used to notify all producers to modify their rate.
+    std::vector<BBQObserver *> observers;
+
+    // Helper functions.
+    inline bool canInsert() { return (tail - head) < MAX_BUFFER_SIZE; }
     inline bool canRemove() { return head < tail; }
-    
+
 public:
     /**
-     * Default constructor
+     * 
      */
     BBQ();
 
     /**
-     * Default destructor.
-     */
-    ~BBQ() {};
+     * 
+     */ 
+    ~BBQ();
 
     /**
-     * Inserts a new item into the buffer if buffer is not full. Otherwise,
-     * waits until space becomes available.
      * 
-     * @param item the item to be inserted.
-     * @return id of inserted item, which is the total number of items inserted.
      */
-    std::size_t insert(int item);
+    int insert(int item);
 
     /**
-     * Removes an item from the buffer if buffer is not empty. Otherwise,
-     * waits until there is an available item in the buffer.
      * 
-     * @param item upon sucess contains copy of removed item.
-     * @return id of removed item, which is the total number of items removed.
      */
-    std::size_t remove(int &item);
+    int remove(int &item);
+
+    /**
+     * 
+     */ 
+    void registerObserver(BBQObserver *observer);
+
+    /**
+     * 
+     */
+    void notifyObservers();
+
 };
 
 #endif
