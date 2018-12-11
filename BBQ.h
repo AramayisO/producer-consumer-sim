@@ -42,12 +42,12 @@ public:
     /**
      * 
      */
-    int insert(int thread_id, int item);
+    void insert(int thread_id, int item);
 
     /**
      * 
      */
-    int remove(int thread_id, int &item);
+    void remove(int thread_id, int &item);
 
     /**
      * 

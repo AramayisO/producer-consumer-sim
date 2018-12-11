@@ -12,7 +12,7 @@ BBQ::~BBQ() {
     buffer = nullptr;
 }
 
-int BBQ::insert(int thread_id, int item)
+void BBQ::insert(int thread_id, int item)
 {
     // Acquire lock and check if there is space to add a new item.
     // Release lock and wait if there is no space. Otherwise,
@@ -21,19 +21,18 @@ int BBQ::insert(int thread_id, int item)
     item_removed.wait(lock, std::bind(&BBQ::canInsert, this, thread_id));
     buffer[tail % MAX_BUFFER_SIZE] = item;
     tail++;
-    
+
+    tsprintf("Item ID %d produced by thread number %d\n", tail - 1, thread_id);
+
     // Notify observers if threshold exceeded or cleared.
     notifyObservers();
     
     // Signal that an item has been insert to allow a waiting
     // consumer thread to continue.
     item_added.notify_one();
-
-    // Return ID of inserted item.
-    return tail - 1;
 }
 
-int BBQ::remove(int thread_id, int &item)
+void BBQ::remove(int thread_id, int &item)
 {
     // Acquire lock and check if there is at least one item that can be removed.
     // Release lock and wait if there are no items in the buffer. Otherwise,
@@ -43,15 +42,14 @@ int BBQ::remove(int thread_id, int &item)
     item = buffer[head % MAX_BUFFER_SIZE];
     head++;
 
+    tsprintf("Item ID %d consumed by thread number %d\n", head - 1, thread_id);
+
     // Notify observers.
     notifyObservers();
 
     // Signal that an item has been removed to allow a waiting
     // producer thread to continue.
     item_removed.notify_one();
-    
-    // Return ID of removed item.
-    return head - 1;
 }
 
 void BBQ::registerObserver(BBQObserver *observer)

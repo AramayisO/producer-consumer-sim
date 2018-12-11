@@ -25,8 +25,7 @@ public:
         {
             if (bbq != nullptr)
             {
-                int item_id = bbq->insert(thread_id, thread_id);
-                tsprintf("Item ID %d produced by thread number %d\n", item_id, thread_id);
+                bbq->insert(thread_id, std::rand() % MAX_BUFFER_SIZE);
                 std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time));
             }
         }
