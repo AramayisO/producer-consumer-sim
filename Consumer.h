@@ -24,7 +24,7 @@ public:
             if (bbq != nullptr)
             {
                 int item;
-                int item_id = bbq->remove(item);
+                int item_id = bbq->remove(thread_id, item);
                 std::printf("Item ID %d consumed by thread number %d\n", item_id, thread_id);
                 std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time));
             }

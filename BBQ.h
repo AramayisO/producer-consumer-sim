@@ -25,9 +25,9 @@ private:
     std::vector<BBQObserver *> observers;
 
     // Helper functions.
-    inline bool canInsert() { return (tail - head) < MAX_BUFFER_SIZE; }
-    inline bool canRemove() { return head < tail; }
-
+    inline bool canInsert(int thread_id);
+    inline bool canRemove(int thread_id);
+    
 public:
     /**
      * 
@@ -42,12 +42,12 @@ public:
     /**
      * 
      */
-    int insert(int item);
+    int insert(int thread_id, int item);
 
     /**
      * 
      */
-    int remove(int &item);
+    int remove(int thread_id, int &item);
 
     /**
      * 

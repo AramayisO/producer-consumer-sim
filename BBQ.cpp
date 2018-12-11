@@ -11,13 +11,13 @@ BBQ::~BBQ() {
     buffer = nullptr;
 }
 
-int BBQ::insert(int item)
+int BBQ::insert(int thread_id, int item)
 {
     // Acquire lock and check if there is space to add a new item.
     // Release lock and wait if there is no space. Otherwise,
     // insert item and return.
     std::unique_lock<std::mutex> lock(buffer_mutex);
-    item_removed.wait(lock, std::bind(&BBQ::canInsert, this));
+    item_removed.wait(lock, std::bind(&BBQ::canInsert, this, thread_id));
     buffer[tail % MAX_BUFFER_SIZE] = item;
     tail++;
     
@@ -32,13 +32,13 @@ int BBQ::insert(int item)
     return tail - 1;
 }
 
-int BBQ::remove(int &item)
+int BBQ::remove(int thread_id, int &item)
 {
     // Acquire lock and check if there is at least one item that can be removed.
     // Release lock and wait if there are no items in the buffer. Otherwise,
     // remove item and return.
     std::unique_lock<std::mutex> lock(buffer_mutex);
-    item_added.wait(lock, std::bind(&BBQ::canRemove, this));
+    item_added.wait(lock, std::bind(&BBQ::canRemove, this, thread_id));
     item = buffer[head % MAX_BUFFER_SIZE];
     head++;
 
@@ -66,5 +66,31 @@ void BBQ::notifyObservers()
     for (BBQObserver *observer : observers)
     {
         observer->update();
+    }
+}
+
+bool BBQ::canInsert(int thread_id)
+{
+    if ((tail - head) < MAX_BUFFER_SIZE)
+    {
+        return true;
+    }
+    else
+    {
+        std::printf("Waiting to produce by thread number %d\n", thread_id);
+        return false;
+    }
+}
+
+bool BBQ::canRemove(int thread_id)
+{
+    if (head < tail)
+    {
+        return true;
+    }
+    else
+    {
+        std::printf("Waiting to consume by thread number %d\n", thread_id);
+        return false;
     }
 }

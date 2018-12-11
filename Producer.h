@@ -24,7 +24,7 @@ public:
         {
             if (bbq != nullptr)
             {
-                int item_id = bbq->insert(1);
+                int item_id = bbq->insert(thread_id, thread_id);
                 std::printf("Item ID %d produced by thread number %d\n", item_id, thread_id);
                 std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time));
             }
