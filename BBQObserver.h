@@ -11,6 +11,7 @@ enum class BBQObserverAction
 class BBQObserver
 {
 public:
+    virtual ~BBQObserver() {};
     virtual void update(BBQObserverAction action) = 0;
 };
 
