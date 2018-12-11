@@ -15,12 +15,15 @@ Producer::Producer(BBQ *_bbq, int id, int tp):
 
 void Producer::run()
 {
+    using std::this_thread::sleep_for;
+    using std::chrono::milliseconds;
+
     while (true)
     {
         if (bbq != nullptr)
         {
             bbq->insert(thread_id, std::rand() % BBQ_MAX_BUFFER_SIZE);
-            std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time));
+            sleep_for(milliseconds(std::rand() % max_sleep_time));
         }
     }
 }

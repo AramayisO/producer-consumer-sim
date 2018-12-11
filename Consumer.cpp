@@ -13,13 +13,16 @@ Consumer::Consumer(BBQ *_bbq, int id, int tc):
 
 void Consumer::run()
 {
+    using std::this_thread::sleep_for;
+    using std::chrono::milliseconds;
+
     while (true)
     {
         if (bbq != nullptr)
         {
             int item;
             bbq->remove(thread_id, item);
-            std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time));
+            sleep_for(milliseconds(std::rand() % max_sleep_time));
         }
     }
 }
