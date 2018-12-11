@@ -1,6 +1,7 @@
 #include "BBQ.h"
 #include "Producer.h"
 #include "Consumer.h"
+#include "tsprintf.h"
 #include <thread>
 #include <vector>
 #include <cstdlib>
@@ -14,9 +15,9 @@ int main(int argc, char **argv)
     // Check if program was called with correct number of command-line arguemnts.
     if (argc != 3)
     {
-        std::printf("Error: project1 expected 2 arguments received %d\n", argc - 1);
-        std::printf("Usage: project1 [sleep time range limit in milliseconds for producing threads]\n");
-        std::printf("                [sleep time range limit in milliseconds for consuming threads]\n");
+        tsprintf("Error: project1 expected 2 arguments received %d\n", argc - 1);
+        tsprintf("Usage: project1 [sleep time range limit in milliseconds for producing threads]\n");
+        tsprintf("                [sleep time range limit in milliseconds for consuming threads]\n");
         exit(EXIT_FAILURE);
     }
 
@@ -51,7 +52,7 @@ int main(int argc, char **argv)
         // Create producer threads in separate loop so that all producers are 
         // registered as observers on the BBQ prior to creating threads.
         producerThreads.push_back(std::thread(&Producer::run, producers[i]));
-        std::printf("Created producer thread number %d\n", i + 1);
+        tsprintf("Created producer thread number %d\n", i + 1);
     }
 
     for (int i = NUM_PRODUCERS; i < NUM_PRODUCERS + NUM_CONSUMERS; ++i)
@@ -59,7 +60,7 @@ int main(int argc, char **argv)
         Consumer *consumer = new Consumer(bbq, i + 1, max_consumer_sleep_time_ms);
         consumers.push_back(consumer);
         consumerThreads.push_back(std::thread(&Consumer::run, consumer));
-        std::printf("Created consumer thread number %d\n", i + 1);
+        tsprintf("Created consumer thread number %d\n", i + 1);
     }
         
     // Even though the threads will run forever, we need to call join on the 

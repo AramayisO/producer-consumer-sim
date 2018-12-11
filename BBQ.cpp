@@ -1,5 +1,6 @@
 #include "BBQ.h"
 #include "BBQObserver.h"
+#include "tsprintf.h"
 #include <functional>
 
 BBQ::BBQ() : head{0}, tail{0} {
@@ -77,7 +78,7 @@ bool BBQ::canInsert(int thread_id)
     }
     else
     {
-        std::printf("Waiting to produce by thread number %d\n", thread_id);
+        tsprintf("Waiting to produce by thread number %d\n", thread_id);
         return false;
     }
 }
@@ -90,7 +91,7 @@ bool BBQ::canRemove(int thread_id)
     }
     else
     {
-        std::printf("Waiting to consume by thread number %d\n", thread_id);
+        tsprintf("Waiting to consume by thread number %d\n", thread_id);
         return false;
     }
 }

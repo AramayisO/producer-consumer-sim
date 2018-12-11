@@ -3,6 +3,7 @@
 
 #include "BBQ.h"
 #include "BBQObserver.h"
+#include "tsprintf.h"
 #include <thread>
 #include <chrono>
 #include <cstdio>
@@ -25,7 +26,7 @@ public:
             if (bbq != nullptr)
             {
                 int item_id = bbq->insert(thread_id, thread_id);
-                std::printf("Item ID %d produced by thread number %d\n", item_id, thread_id);
+                tsprintf("Item ID %d produced by thread number %d\n", item_id, thread_id);
                 std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time));
             }
         }

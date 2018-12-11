@@ -2,6 +2,7 @@
 #define CONSUMER_H
 
 #include "BBQ.h"
+#include "tsprintf.h"
 #include <thread>
 #include <chrono>
 #include <cstdio>
@@ -25,7 +26,7 @@ public:
             {
                 int item;
                 int item_id = bbq->remove(thread_id, item);
-                std::printf("Item ID %d consumed by thread number %d\n", item_id, thread_id);
+                tsprintf("Item ID %d consumed by thread number %d\n", item_id, thread_id);
                 std::this_thread::sleep_for(std::chrono::milliseconds(std::rand() % max_sleep_time));
             }
         }
