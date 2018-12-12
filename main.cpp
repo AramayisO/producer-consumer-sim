@@ -78,5 +78,8 @@ int main(int argc, char **argv)
     for (auto &consumerThread : consumerThreads)
         consumerThread.join();
 
+    ThreadSafeIO::printf("Number of times full: %d\n", bbq->getNumTimesFull());
+    ThreadSafeIO::printf("Number of times empty: %d\n", bbq->getNumTimesEmpty());
+    
     return 0;
 }

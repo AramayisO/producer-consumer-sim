@@ -18,6 +18,8 @@ private:
     int *buffer;
     int head;
     int tail;
+    int num_times_full;
+    int num_times_empty;
 
     // Observer pattern used to notify all producers to modify their rate.
     std::vector<BBQObserver *> observers;
@@ -56,6 +58,15 @@ public:
      * 
      */
     void notifyObservers(BBQObserverAction action);
+
+    /**
+     * 
+     */
+    int getNumTimesFull() { return num_times_full; };
+    /**
+     * 
+     */
+    int getNumTimesEmpty() { return num_times_empty; };
 
 };
 

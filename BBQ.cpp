@@ -7,7 +7,7 @@
 #define BBQ_THREE_QUARTERS_BUFFER_SIZE ((BBQ_MAX_BUFFER_SIZE * 3) / 4)
 #define BBQ_ONE_QUARTER_BUFFER_SIZE    (BBQ_MAX_BUFFER_SIZE / 4)
 
-BBQ::BBQ() : head{0}, tail{0} {
+BBQ::BBQ() : head{0}, tail{0}, num_times_full{0}, num_times_empty{0} {
     buffer = new int[BBQ_MAX_BUFFER_SIZE];
 }
 
@@ -94,6 +94,7 @@ bool BBQ::canInsert(int thread_id)
     }
     else
     {
+        ++num_times_full;
         ThreadSafeIO::printf("Waiting to produce by thread number %d\n", thread_id);
         return false;
     }
@@ -107,6 +108,7 @@ bool BBQ::canRemove(int thread_id)
     }
     else
     {
+        ++num_times_empty;
         ThreadSafeIO::printf("Waiting to consume by thread number %d\n", thread_id);
         return false;
     }
