@@ -6,6 +6,10 @@
 #include <cstdio>
 #include <cstdlib>
 
+#ifdef FIXED_NUMBER_OF_ITERATIONS
+    extern int MAX_NUMBER_OF_ITERATIONS;
+#endif
+
 Producer::Producer(BBQ *_bbq, int id, int tp): 
     bbq{_bbq}, 
     thread_id{id}, 
@@ -18,8 +22,15 @@ void Producer::run()
     using std::this_thread::sleep_for;
     using std::chrono::milliseconds;
 
-    while (true)
+    while (true
+#ifdef FIXED_NUMBER_OF_ITERATIONS
+        && Producer::iteration < MAX_NUMBER_OF_ITERATIONS
+#endif
+    )
     {
+#ifdef FIXED_NUMBER_OF_ITERATIONS
+        Producer::iteration++;
+#endif
         if (bbq != nullptr)
         {
             bbq->insert(thread_id, std::rand() % 100);
@@ -46,3 +57,7 @@ void Producer::update(BBQObserverAction action)
         break;
     }
 }
+
+#ifdef FIXED_NUMBER_OF_ITERATIONS
+    int Producer::iteration = 0;
+#endif

@@ -10,6 +10,10 @@
 #define NUM_PRODUCERS 10
 #define NUM_CONSUMERS 10
 
+#ifdef FIXED_NUMBER_OF_ITERATIONS
+    extern const int MAX_NUMBER_OF_ITERATIONS = 1000;
+#endif
+
 int main(int argc, char **argv)
 {
     // Check if program was called with correct number of command-line arguemnts.

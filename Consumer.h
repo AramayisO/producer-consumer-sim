@@ -10,6 +10,10 @@ private:
     int thread_id;
     int max_sleep_time;
 
+#ifdef FIXED_NUMBER_OF_ITERATIONS
+    static int iteration;
+#endif
+
 public:
     Consumer(BBQ *_bbq, int id, int tc);
 
