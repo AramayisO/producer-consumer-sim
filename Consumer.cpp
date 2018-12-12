@@ -1,5 +1,4 @@
 #include "Consumer.h"
-#include "tsprintf.h"
 #include <thread>
 #include <chrono>
 #include <cstdio>

@@ -1,6 +1,6 @@
 #include "BBQ.h"
 #include "BBQObserver.h"
-#include "tsprintf.h"
+#include "ThreadSafeIO.h"
 #include <functional>
 
 #define BBQ_MAX_BUFFER_SIZE            25
@@ -26,7 +26,7 @@ void BBQ::insert(int thread_id, int item)
     buffer[tail % BBQ_MAX_BUFFER_SIZE] = item;
     tail++;
 
-    tsprintf("Item ID %d produced by thread number %d\n", tail - 1, thread_id);
+    ThreadSafeIO::printf("Item ID %d produced by thread number %d\n", tail - 1, thread_id);
 
     // Notify observers if threshold exceeded or cleared.
     if ((tail - head) >= BBQ_THREE_QUARTERS_BUFFER_SIZE)
@@ -53,7 +53,7 @@ void BBQ::remove(int thread_id, int &item)
     item = buffer[head % BBQ_MAX_BUFFER_SIZE];
     head++;
 
-    tsprintf("Item ID %d consumed by thread number %d\n", head - 1, thread_id);
+    ThreadSafeIO::printf("Item ID %d consumed by thread number %d\n", head - 1, thread_id);
 
     // Notify observers if threshold exceeded or cleared.
     if ((tail - head) <= BBQ_ONE_QUARTER_BUFFER_SIZE)
@@ -94,7 +94,7 @@ bool BBQ::canInsert(int thread_id)
     }
     else
     {
-        tsprintf("Waiting to produce by thread number %d\n", thread_id);
+        ThreadSafeIO::printf("Waiting to produce by thread number %d\n", thread_id);
         return false;
     }
 }
@@ -107,7 +107,7 @@ bool BBQ::canRemove(int thread_id)
     }
     else
     {
-        tsprintf("Waiting to consume by thread number %d\n", thread_id);
+        ThreadSafeIO::printf("Waiting to consume by thread number %d\n", thread_id);
         return false;
     }
 }
