@@ -4,30 +4,25 @@
 #include <cstdio>
 #include <cstdlib>
 
-#ifdef FIXED_NUMBER_OF_ITERATIONS
-    extern int MAX_NUMBER_OF_ITERATIONS;
-#endif
-
 Consumer::Consumer(BBQ *_bbq, int id, int tc): 
     bbq{_bbq}, 
     thread_id{id}, 
     max_sleep_time{tc} 
     {}
 
+// This function will run indefinitely, attemting to remove
+// an item from the queue. It will cause the thread to block 
+// if the queue is empty. After each remove, the thread will
+// sleep for some time in the range (0, max_sleep_time). The
+// sleep time is random and can change between consecutive
+// remove operations.
 void Consumer::run()
 {
     using std::this_thread::sleep_for;
     using std::chrono::milliseconds;
 
-    while (true
-#ifdef FIXED_NUMBER_OF_ITERATIONS
-        && Consumer::iteration < MAX_NUMBER_OF_ITERATIONS
-#endif
-    )
+    while (true)
     {
-#ifdef FIXED_NUMBER_OF_ITERATIONS
-        Consumer::iteration++;
-#endif
         if (bbq != nullptr)
         {
             int item;
@@ -36,7 +31,3 @@ void Consumer::run()
         }
     }
 }
-
-#ifdef FIXED_NUMBER_OF_ITERATIONS
-    int Consumer::iteration = 0;
-#endif

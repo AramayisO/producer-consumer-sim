@@ -10,10 +10,16 @@
 #define NUM_PRODUCERS 10
 #define NUM_CONSUMERS 10
 
-#ifdef FIXED_NUMBER_OF_ITERATIONS
-    extern const int MAX_NUMBER_OF_ITERATIONS = 1000;
-#endif
 
+// ============================================================================
+// = main: Entry point into the program. Creates NUM_PRODUCER producer threads 
+// =       and NUM_CONSUMER consumer threads that share a single BBQ object. 
+// =       Each thread runs indefinitely with a random sleep time between 
+// =       consecutive insert and remove operations within the range 
+// =       (0, max_producer_sleep_time_ms) and  (0, max_consumer_sleep_time_ms) 
+// =       where max_producer_sleep_time_ms and max_consumer_sleep_time_ms are 
+// =       in milliseconds and passed in as command-line arguments.
+// ============================================================================
 int main(int argc, char **argv)
 {
     // Check if program was called with correct number of command-line arguemnts.
@@ -25,25 +31,29 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    // Use current time as seed for random number generator.
+    // This will ensure that the random sleep times for producer and
+    // consumer threads are different each time the program is run.
     std::srand(std::time(nullptr));
 
-    // Parse delay times from command line arguements.
+    // Parse initial sleep times from command line arguements.
     int max_producer_sleep_time_ms = std::atoi(*(argv + 1));
     int max_consumer_sleep_time_ms = std::atoi(*(argv + 2));
 
-
-    std::srand(std::time(0));
-
-    // Create shared blocking bounded queue.
+    // Create shared blocking bounded queue. We allocate the queue on the
+    // heap rather than on the stack since it is best practice to allocate
+    // objects that will be shared by multiple threads on the heap.
     BBQ *bbq = new BBQ();
 
-    // Initialize producer and consumer threads. These threads will run forever.
+    // Just some state to keep track of allocated resources.
     std::vector<Producer*> producers;
     std::vector<Consumer*> consumers;
     std::vector<std::thread> producerThreads;
     std::vector<std::thread> consumerThreads;
 
+    // Create producer objects and register them as observers on the BBQ object.
+    // This will allow the BBQ to notify the producers when certain events occur,
+    // such as the BBQ becoming some percentage full or empty, and the producers
+    // can adjust their rate of production in response.
     for (int i = 0; i < NUM_PRODUCERS; ++i)
     {
         Producer *producer = new Producer(bbq, i + 1, max_producer_sleep_time_ms);
@@ -51,14 +61,15 @@ int main(int argc, char **argv)
         bbq->registerObserver(producer);
     }
 
+    // Create producer threads in separate loop so that all producers are 
+    // registered as observers on the BBQ prior to creating threads.
     for (int i = 0; i < NUM_PRODUCERS; ++i)
     { 
-        // Create producer threads in separate loop so that all producers are 
-        // registered as observers on the BBQ prior to creating threads.
         producerThreads.push_back(std::thread(&Producer::run, producers[i]));
         ThreadSafeIO::printf("Created producer thread number %d\n", i + 1);
     }
 
+    // Create consumer objects and threads.
     for (int i = NUM_PRODUCERS; i < NUM_PRODUCERS + NUM_CONSUMERS; ++i)
     {
         Consumer *consumer = new Consumer(bbq, i + 1, max_consumer_sleep_time_ms);
@@ -78,8 +89,21 @@ int main(int argc, char **argv)
     for (auto &consumerThread : consumerThreads)
         consumerThread.join();
 
-    ThreadSafeIO::printf("Number of times full: %d\n", bbq->getNumTimesFull());
-    ThreadSafeIO::printf("Number of times empty: %d\n", bbq->getNumTimesEmpty());
     
-    return 0;
+    // Cleanup, even though it's not necessary since the producer and consumer
+    // threads will run forever until the program is terminated by the user,
+    // just as good habit.
+    for (Producer *producer : producers)
+    {
+        if (producer != nullptr)
+            delete producer;
+    }
+
+    for (Consumer *consumer : consumers)
+    {
+        if (consumer != nullptr)
+            delete consumer;
+    }
+
+    return EXIT_SUCCESS;
 }
