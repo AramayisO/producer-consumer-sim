@@ -59,7 +59,7 @@ public:
     void remove(int thread_id, int &item);
 
     /**
-     * Adds an observer to the queues list of of registered observers
+     * Adds an observer to the queue's list of registered observers
      * that will be notified on particular threshold events by calling
      * the observers update function.
      */ 
